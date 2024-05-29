@@ -17,3 +17,21 @@ You are required to build a simple CRUD (Create, Read, Update, Delete) API for m
 ## REQUIREMENTS:
 Use FastAPI framework to build the API.
 Persist data in-memory (e.g., using lists or dictionaries)
+
+### USAGE
+- clone repo
+`git clone https://github.com/Coding-doves/FASTAPI_MINI_PROJECT_KC4.0.git`
+- Navigate into directory
+`cd FASTAPI_MINI_PROJECT_KC4.0`
+- Activate environment
+`venv\Script\activate`
+- Point to FastAPI Python Interpreter (using VScode)
+    - `Ctrl + Shift + p`
+    - Type `interperter`
+    - Select `python interpreter`
+    - Select `Enter interpreter path`
+    - Select `venv` folder
+    - Select `Script` foler
+    - Select `Python` interpreter
+- Run
+`uvicorn app:app --reload`

@@ -56,6 +56,7 @@ class BookCollection:
                 detail="Book with this ID does not exists")
         print(f"Updating book with ID {bk_id} to {upd_book}")
         self.books[bk_id] = upd_details
+        return upd_details
 
     def delete_book(self, bk_id: str) -> Book:
         """Delete requested book"""
