@@ -54,7 +54,6 @@ class BookCollection:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Book with this ID does not exists")
-        print(f"Updating book with ID {bk_id} to {upd_book}")
         self.books[bk_id] = upd_details
         return upd_details
 
