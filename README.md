@@ -31,7 +31,7 @@ Persist data in-memory (e.g., using lists or dictionaries)
     - Select `python interpreter`
     - Select `Enter interpreter path`
     - Select `venv` folder
-    - Select `Script` foler
+    - Select `Script` folder
     - Select `Python` interpreter
 - Run
 `uvicorn app:app --reload`
