@@ -21,15 +21,15 @@ class BookCollection:
     """
     Desc:
         Collection of Books.
-        Add, update, retrieve and delete books.
+        Handle CRUD operations
     """
 
     def __init__(self):
-        """ intializing class """
+        """ intializing the BookCollection with an empty dictionary """
         self.books: Dict[str, Book] = {}
 
     def new_book(self, bk: Book):
-        """ add new books """
+        """ add new books to collection """
         if bk.id in self.books:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -49,7 +49,7 @@ class BookCollection:
         return list(self.books.values())
 
     def update_book(self, bk_id: str, upd_details: Book):
-        """Update book details"""
+        """Update book details of a book by its ID"""
         if bk_id not in self.books:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -70,7 +70,7 @@ class BookCollection:
 book_coll = BookCollection()
 
 
-@app.post("/add/", response_model=Book)
+@app.post("/books/", response_model=Book)
 def add_new_book(book:Book):
     """
     Desc:
@@ -84,7 +84,7 @@ def add_new_book(book:Book):
     book_coll.new_book(book)
     return book
 
-@app.get("/retrieve_all/", response_model=List[Book])
+@app.get("/all_books/", response_model=List[Book])
 def retrieve_all_books():
     """
     Desc:
@@ -93,7 +93,7 @@ def retrieve_all_books():
     """
     return book_coll.retrieve_all_book()
 
-@app.get("/retrieve_one/{bk_id}", response_model=Book)
+@app.get("/one_book/{bk_id}", response_model=Book)
 def retrieve_a_books(bk_id: str):
     """
     Desc: Retrieve specific book in collection
@@ -102,7 +102,7 @@ def retrieve_a_books(bk_id: str):
     """
     return book_coll.retrieve_a_book(bk_id)
 
-@app.put("/update/{bk_id}", response_model=Book)
+@app.put("/edit_book/{bk_id}", response_model=Book)
 def update_a_book(bk_id:str, bk:Book):
     """
     Desc: Add new details to a book in collection
@@ -111,7 +111,7 @@ def update_a_book(bk_id:str, bk:Book):
     """
     return book_coll.update_book(bk_id, bk)
 
-@app.delete("/delete/{bk_id}", response_model=Book)
+@app.delete("/del_book/{bk_id}", response_model=Book)
 def delete_a_books(bk_id:str):
     """
     Desc: Delete a book in collection
