@@ -7,7 +7,7 @@ app = FastAPI()
 
 # Basic Query Parameters
 @app.get("/item/")
-def item(name: Optional[str] = None, category: Optional[str] = None, price: Optional[float] = None):
+def item(name: str, category: str, price: float):
     """
     Description: 
                 Create an endpoint that accepts multiple query parameters and returns them in a structured format.
