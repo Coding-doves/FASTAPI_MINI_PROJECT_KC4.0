@@ -1,8 +1,8 @@
-from fastapi import Body, FastAPI, Query, Path
-from typing import Optional, Annotated
+from fastapi import FastAPI, Query, Path, Body
+from typing import Optional
 from pydantic import BaseModel
 
-app = FastAPI
+app = FastAPI()
 
 
 # Basic Query Parameters
@@ -100,12 +100,12 @@ def create_user(user:User):
 
 # Query Parameters with String Validations
 @app.post("/validate/")
-def str_validation(username: Annotated[str, Query(
+def str_validation(username: str = Query(
                             ..., # parameter is required
                             min_length=3, # Minimum length for username
                             max_length=20, # Maximum length
                             regex="^[a-zA-Z0-9]+$" # Allowed: num, alpha, underscores
-                    )]):    
+                    )):    
     """
     Description: 
                 Create an endpoint that validates query parameters using string validations that includes length and regex.
@@ -126,9 +126,9 @@ class Report(BaseModel):
 
 # Combined Parameters and Validations
 @app.post("/report/{report_id}")
-def self_reporting(report_id: Annotated[int, Path(..., gt=0)], 
-                    start_date: Annotated[str, Query(None)],
-                    end_date: Annotated[str, Query(None)], 
+def self_reporting(report_id: int = Path(..., gt=0), 
+                    start_date: str = Query(None),
+                    end_date: str = Query(None), 
                     report: Report = Body(...)):
     """
     Description: 
