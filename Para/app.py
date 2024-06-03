@@ -5,8 +5,12 @@ from pydantic import BaseModel
 app = FastAPI()
 
 
+"""
+TASK 1
+Test:
+    Test: http://127.0.0.1:8000/item/?name=example&category=sample&price=10.99
+"""
 # Basic Query Parameters
-# Test: http://127.0.0.1:8000/item/?name=example&category=sample&price=10.99
 @app.get("/item/")
 def item(name: str, category: str, price: float):
     """
@@ -23,8 +27,12 @@ def item(name: str, category: str, price: float):
     }
 
 
+"""
+TASK 2
+Test:
+    http://127.0.0.1:8000/search/?query=movers&page=1&size=4
+"""
 # Query Parameters with Default Values and Optional Fields
-# Test: http://127.0.0.1:8000/search/?query=movers&page=1&size=4
 @app.get("/search/")
 def search(query: Optional[str] = None, page: int = 1, size: int = 5):
     """
@@ -65,6 +73,25 @@ def search(query: Optional[str] = None, page: int = 1, size: int = 5):
     }
 
 
+"""
+TASK 3
+
+Test: 
+    {
+        "name": "Ada Brown",
+        "email": "ada.brown@example.com",
+        "address": {
+            "street": "123 Main St",
+            "city": "Anytown",
+            "zip": "102101"
+        },
+        "profile": {
+            "bio": "Software Developer",
+            "git_handle": "@ada"
+        }
+    }
+
+"""
 class Address(BaseModel):
     street: str
     city: str
@@ -73,7 +100,7 @@ class Address(BaseModel):
 
 class Profile(BaseModel):
     bio: Optional[str] = None
-    handle: Optional[str] = None
+    git_handle: Optional[str] = None
 
 
 class User(BaseModel):
@@ -102,13 +129,20 @@ def create_user(user:User):
     return user
 
 
+"""
+TASK 4
+Test: 
+    http://127.0.0.1:8000/validate/?username=Brown_dove123
+    http://127.0.0.1:8000/validate/?username=Brown-dove123
+    http://127.0.0.1:8000/validate/?username=Br
+"""
 # Query Parameters with String Validations
-@app.post("/validate/")
+@app.get("/validate/")
 def str_validation(username: str = Query(
                             ..., # parameter is required
                             min_length=3, # Minimum length for username
                             max_length=20, # Maximum length
-                            regex="^[a-zA-Z0-9]+$" # Allowed: num, alpha, underscores
+                            regex="^[a-zA-Z0-9_]*$" # Allowed: num, alpha, underscores
                     )):    
     """
     Description: 
@@ -123,13 +157,24 @@ def str_validation(username: str = Query(
     return {"User": username, "msg": "Validated"}
 
 
+"""
+TASK 5
+Test:
+    query parameter:
+                    http://127.0.0.1:8000/reports/1?start_date=2024-05-01&end_date=2024-05-31
+    body parameter: {
+                        "title": "Monthly Report",
+                        "content": "This is the content of the monthly report."
+                    }
+
+"""
 class Report(BaseModel):
     title: str
     content: str
 
 
 # Combined Parameters and Validations
-@app.post("/report/{report_id}")
+@app.post("/reports/{report_id}")
 def self_reporting(report_id: int = Path(..., gt=0), 
                     start_date: str = Query(None),
                     end_date: str = Query(None), 
