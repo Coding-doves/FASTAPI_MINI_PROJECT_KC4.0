@@ -6,6 +6,7 @@ app = FastAPI()
 
 
 # Basic Query Parameters
+# Test: http://127.0.0.1:8000/item/?name=example&category=sample&price=10.99
 @app.get("/item/")
 def item(name: str, category: str, price: float):
     """
@@ -23,6 +24,7 @@ def item(name: str, category: str, price: float):
 
 
 # Query Parameters with Default Values and Optional Fields
+# Test: http://127.0.0.1:8000/search/?query=movers&page=1&size=4
 @app.get("/search/")
 def search(query: Optional[str] = None, page: int = 1, size: int = 5):
     """
@@ -37,10 +39,12 @@ def search(query: Optional[str] = None, page: int = 1, size: int = 5):
     # Test data
     data = [
         {"id": 1, "name": "Cat school"},
-        {"id": 2, "name": "Drama target"},
-        {"id": 3, "name": "Kodecamp 4"},
-        {"id": 4, "name": "Palatable store"},
-        {"id": 5, "name": "Movers part 5"},
+        {"id": 2, "name": "Movers 1"},
+        {"id": 3, "name": "Drama target"},
+        {"id": 4, "name": "Kodecamp 4"},
+        {"id": 5, "name": "Palatable store"},
+        {"id": 6, "name": "Movers part 5"},
+        {"id": 7, "name": "Movers part 3"},
     ]
 
     # Filter the data based on the query
