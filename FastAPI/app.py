@@ -127,13 +127,25 @@ TASK 3:
     Product Search with Pagination and Filtering
 
 Test: 
-    
+    Basic Search:
+    http://localhost:8000/search/?q=laptop
+    http://localhost:8000/search/?category=Electronics
+    http://localhost:8000/search/?min_price=500
+    http://localhost:8000/search/?max_price=200
+    http://localhost:8000/search/?min_price=150&max_price=500
+
+    Search with Pagination:
+    http://localhost:8000/search/?page=1&page_size=5
+
+    Combined Search:
+    http://localhost:8000/search/?q=table&category=Furniture&min_price=100&max_price=200&page=1&page_size=4
+
 """
 class ProductSearch(BaseModel):
     id: int
-    search_term: str
+    name: str
     category: str
-    price_range: float
+    price: float
 
 class Pagination(BaseModel):
     page_number: Optional[int]
@@ -150,6 +162,9 @@ products = [
     {"id": 2, "name": "Smartphone", "category": "Electronics", "price": 499.99},
     {"id": 3, "name": "Desk Chair", "category": "Furniture", "price": 199.99},
     {"id": 4, "name": "Coffee Table", "category": "Furniture", "price": 149.99},
+    {"id": 5, "name": "Coffee", "category": "Beverage", "price": 14.09},
+    {"id": 6, "name": "Solfa Set", "category": "Furniture", "price": 109.99},
+    {"id": 7, "name": "Bamboo Phone Stand", "category": "Deco", "price": 10.99},
 ]
 
 @app.get("/search/", response_model=ResponseModelProductSearch, status_code=status.HTTP_200_OK)
@@ -172,7 +187,7 @@ def search_product(search_term: Optional[str] = Query(None, alias="q", min_lengt
             filtered = [product for product in filtered if search_term.lower() in product["name"].lower()]
         # Filter by category
         if category:    
-            filtered = [product for product in filtered if product["name"].lower() == category]
+            filtered = [product for product in filtered if product["category"].lower() == category.lower()]
         # Filter by min_price
         if min_price is not None:    
             filtered = [product for product in filtered if product["price"] >= min_price]
