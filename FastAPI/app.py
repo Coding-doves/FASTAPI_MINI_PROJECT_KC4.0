@@ -117,7 +117,7 @@ def update_profile(name: Annotated[str, Form(min_length=2, max_length=100)],
         return details
      
     except ValidationError as e:
-        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -165,6 +165,8 @@ def search_product(search_term: Optional[str] = Query(None, alias="q", min_lengt
     Returns: filtered and paginated list of products
     """
     try:
+        filtered = products
+
         # Filter by search term
         if search_term:
             filtered = [product for product in filtered if search_term.lower() in product["name"].lower()]
@@ -189,7 +191,7 @@ def search_product(search_term: Optional[str] = Query(None, alias="q", min_lengt
         return response
 
     except ValidationError as e:
-        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
