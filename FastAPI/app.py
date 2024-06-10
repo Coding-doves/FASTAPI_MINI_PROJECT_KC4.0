@@ -322,7 +322,16 @@ def verify_otp(email: Optional[EmailStr] = Form(None), phone_number: Optional[st
 TASK 5:
     E-commerce Shopping Cart Management
 Test:
-    
+    add_to_cart:
+        product_id: 1, quantity: 2
+        product_id: 7, quantity: 1
+        product_id: 1, quantity: 1
+        product_id: 10, quantity: 2
+    remove_item_from_cart:
+        http://localhost:8000/cart/?product_id=1
+    update_item_in_cart:
+        product_id: 1, quantity: 2
+        product_id: 7, quantity: 1
 """
 
 # Cart dictionary to hold cart items
@@ -339,7 +348,6 @@ class CartItem(BaseModel):
     product_id: int
     quantity: int
     details: ProductDetails
-
 
 
 class CartResponse(BaseModel):
@@ -359,7 +367,7 @@ def get_product(product_id: int):
 def add_to_cart(product_id: int = Form(...), quantity: int = Form(...)):
     """
     Endpoint: /cart/
-    Returns: 
+    Returns: Products in cart
     """
     if quantity <= 0:
         raise HTTPException(status_code=400, detail="Quantity must be greater than 0")
@@ -367,11 +375,6 @@ def add_to_cart(product_id: int = Form(...), quantity: int = Form(...)):
     if not product:
         raise HTTPException(status_code=400, detail="Invalid product ID")
     
-    if product_id in cart:
-        cart[product_id] += quantity
-    else:
-        cart[product_id] = quantity
-
     if product_id in cart:
         cart[product_id] += quantity
     else:
@@ -391,6 +394,10 @@ def add_to_cart(product_id: int = Form(...), quantity: int = Form(...)):
 # Endpoint to remove items from the cart
 @app.delete("/cart/", response_model=CartResponse, status_code=status.HTTP_200_OK)
 def remove_item_from_cart(product_id: int = Query(...)):
+    """
+    Endpoint: /cart/
+    Returns: Product in cart
+    """
     if product_id not in cart:
         raise HTTPException(status_code=400, detail="Product not in cart")
     
@@ -410,6 +417,10 @@ def remove_item_from_cart(product_id: int = Query(...)):
 # Endpoint to update item quantities in the cart
 @app.put("/cart/", response_model=CartResponse, status_code=status.HTTP_200_OK)
 def update_item_in_cart(product_id: int = Form(...), quantity: int = Form(...)):
+    """
+    Endpoint: /cart/
+    Returns: Product in cart
+    """
     if quantity <= 0:
         raise HTTPException(status_code=400, detail="Quantity must be greater than 0")
     if product_id not in cart:
