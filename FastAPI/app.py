@@ -1,7 +1,10 @@
 import shutil
-from fastapi import FastAPI, File, HTTPException, Query, Path, Body, status, responses, Form, UploadFile
-from typing import Optional, List, Annotated
+from fastapi import FastAPI, File, HTTPException, Query, status, responses, Form, UploadFile
+from typing import Optional, List, Annotated, Dict
 from pydantic import BaseModel, Field, EmailStr, ValidationError
+import bcrypt
+import random
+import string
 
 app = FastAPI()
 
@@ -79,10 +82,10 @@ def blog_post(post: CreateBlogPost):
 TASK 2:
     User Profile Update with Image Upload
 Test:
-http://127.0.0.1:8000/update_profile/
-name	Brown Dove
-email	brown@example.com
-picture	[Upload Image]
+    http://127.0.0.1:8000/update_profile/
+    name	Brown Dove
+    email	brown@example.com
+    picture	[Upload Image]
 """
 class ResponseModelUpdate(BaseModel):
     name: str
@@ -215,18 +218,107 @@ def search_product(search_term: Optional[str] = Query(None, alias="q", min_lengt
 TASK 4:
     Secure Registration with OTP Verification
 Test: 
-    
-"""
-@app.get("")
-def str_validation():    
-    """
-    Description: 
+    http://localhost:8000/register/
+    email: user@example.com
+    password: strongpassword
+    phone_number: (optional)
 
-    Endpoint: 
-    Query Parameters: 
-    Returns 
+    http://localhost:8000/verify_otp/
+    {
+        "phone_number":"07051481343",
+        "otp":"check the Terminal"
+    }
+    {
+        "email":"brown@example.com",
+        "otp":"check the Terminal"
+    }
+"""
+# In-memory data storage
+users_db: Dict[str, 'User'] = {}
+otp_db: Dict[str, str] = {}
+
+def send_otp(destination: str, otp: str):
+    # Send OTP to email or phone
+    print(f"\nSending OTP {otp} to {destination}\n")
+
+
+def generate_otp():
+    return ''.join(random.choices(string.digits, k=6))
+
+
+class User(BaseModel):
+    email: EmailStr
+    password_hash: str
+    phone_number: Optional[str] = None
+    is_verified: bool = False
+
+
+class ResponseUserRegistration(BaseModel):
+    user_id: str
+    message: str
+
+
+@app.post("/register_user/", response_model=ResponseUserRegistration, status_code=status.HTTP_201_CREATED)
+def str_validation(email: EmailStr = Form(...),
+                   password: str = Form(...),
+                   phone_number: Optional[str] = Form(None)):    
     """
-    return {}
+    Endpoint: /register_user/
+    Query Parameters: email, password, phone_number
+    Returns: user_id and msg
+    """
+    if email in users_db:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+    
+    password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    user_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+
+    users_db[email] = User(email=email, password_hash=password_hash, phone_number=phone_number)
+
+    otp = generate_otp()
+
+    if phone_number:
+        otp_db[phone_number] = otp
+    else:
+        otp_db[email] = otp
+
+    send_otp(email if phone_number is None else phone_number, otp)
+
+    return ResponseUserRegistration(user_id=user_id, message="Please verify the OTP sent to your email or phone")
+
+
+class OTPVerificationResponse(BaseModel):
+    message: str
+
+
+
+@app.post("/verify_otp/", response_model=OTPVerificationResponse, status_code=status.HTTP_200_OK)
+def verify_otp(email: Optional[EmailStr] = Form(None), phone_number: Optional[str] = Form(None), otp: str = Form(...)):
+    """
+    Endpoint: /verify_otp/
+    Form Data: email, phone_number, otp
+    Returns: success message if OTP is valid
+    """
+    print(otp)
+
+    if not email and not phone_number:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email or phone number must be provided")
+    
+    identifier = email if email else phone_number
+
+    if identifier not in otp_db or otp_db[identifier] != otp:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OTP")
+
+    user = users_db[email] if email else next((user for user in users_db.values() if user.phone_number == phone_number), None)
+    
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
+
+    user.is_verified = True
+
+    del otp_db[identifier]
+
+    return OTPVerificationResponse(message="User verified successfully")
 
 
 """
@@ -235,16 +327,19 @@ TASK 5:
 Test:
     
 """
+class CartItem(BaseModel):
+    product_id: int
+    quantity: int
 
 
-# Combined Parameters and Validations
-@app.post("/reports/{report_id}")
-def self_reporting():
+class CartResponse(BaseModel):
+    msg: str
+    cart: Dict[int, CartItem]
+
+@app.post("/cart/", response_model=CartResponse, status_code=status.HTTP_200_OK)
+def shopping_cart():
     """
-    Description: 
-
     Endpoint: 
-    
     Returns: 
     """
     return {
