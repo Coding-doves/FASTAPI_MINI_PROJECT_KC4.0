@@ -224,14 +224,11 @@ Test:
     phone_number: (optional)
 
     http://localhost:8000/verify_otp/
-    {
-        "phone_number":"07051481343",
-        "otp":"check the Terminal"
-    }
-    {
-        "email":"brown@example.com",
-        "otp":"check the Terminal"
-    }
+    phone_number":07051481343,
+    otp:check the Terminal
+
+    email:brown@example.com,
+    otp":check the Terminal
 """
 # In-memory data storage
 users_db: Dict[str, 'User'] = {}
@@ -329,57 +326,104 @@ Test:
 """
 
 # Cart dictionary to hold cart items
-cart = {}
+cart: Dict[int, int] = {}
+
+class ProductDetails(BaseModel):
+    id: int
+    name: str
+    category: str
+    price: float
+
 
 class CartItem(BaseModel):
-    id: int
+    product_id: int
     quantity: int
+    details: ProductDetails
+
 
 
 class CartResponse(BaseModel):
     msg: str
     cart: Dict[int, CartItem]
 
+
+# Helper function to get product by ID
+def get_product(product_id: int):
+    for product in products:
+        if product['id'] == product_id:
+            return product
+    return None
+
+
 @app.post("/cart/", response_model=CartResponse, status_code=status.HTTP_200_OK)
-def add_to_cart(item: CartItem):
+def add_to_cart(product_id: int = Form(...), quantity: int = Form(...)):
     """
-    Endpoint: 
+    Endpoint: /cart/
     Returns: 
     """
-    if item.id not in products:
+    if quantity <= 0:
+        raise HTTPException(status_code=400, detail="Quantity must be greater than 0")
+    product = get_product(product_id)
+    if not product:
         raise HTTPException(status_code=400, detail="Invalid product ID")
-    if item.quantity <= 0:
-        raise HTTPException(status_code=400, detail="Quantity must be greater than zero")
-    if item.quantity > products[item.id]["stock"]:
-        raise HTTPException(status_code=400, detail="Not enough stock available")
     
-    if item.id in cart:
-        cart[item.id].quantity += item.quantity
+    if product_id in cart:
+        cart[product_id] += quantity
     else:
-        cart[item.id] = item
-    
-    return CartResponse(msg="Item added to cart", cart=cart)
+        cart[product_id] = quantity
 
+    if product_id in cart:
+        cart[product_id] += quantity
+    else:
+        cart[product_id] = quantity
+
+    return {
+        "msg": "Item added to cart",
+        "cart": {
+            pid: CartItem(
+                product_id=pid,
+                quantity=qty,
+                details=ProductDetails(**get_product(pid))
+            ) for pid, qty in cart.items()
+        }
+    }
+
+# Endpoint to remove items from the cart
 @app.delete("/cart/", response_model=CartResponse, status_code=status.HTTP_200_OK)
-def remove_from_cart(id: int = Query(...)):
-    if id not in cart:
+def remove_item_from_cart(product_id: int = Query(...)):
+    if product_id not in cart:
         raise HTTPException(status_code=400, detail="Product not in cart")
     
-    del cart[id]
-    return CartResponse(msg="Item removed from cart", cart=cart)
+    del cart[product_id]
 
+    return {
+        "msg": "Item removed from cart",
+        "cart": {
+            pid: CartItem(
+                product_id=pid,
+                quantity=qty,
+                details=ProductDetails(**get_product(pid))
+            ) for pid, qty in cart.items()
+        }
+    }
 
+# Endpoint to update item quantities in the cart
 @app.put("/cart/", response_model=CartResponse, status_code=status.HTTP_200_OK)
-def update_cart(item: CartItem):
-    if item.id not in products:
-        raise HTTPException(status_code=400, detail="Invalid product ID")
-    if item.quantity <= 0:
-        raise HTTPException(status_code=400, detail="Quantity must be greater than zero")
-    if item.quantity > products[item.id]["stock"]:
-        raise HTTPException(status_code=400, detail="Not enough stock available")
-    
-    if item.id not in cart:
+def update_item_in_cart(product_id: int = Form(...), quantity: int = Form(...)):
+    if quantity <= 0:
+        raise HTTPException(status_code=400, detail="Quantity must be greater than 0")
+    if product_id not in cart:
         raise HTTPException(status_code=400, detail="Product not in cart")
     
-    cart[item.id] = item
-    return CartResponse(msg="Cart updated", cart=cart)
+    cart[product_id] = quantity
+
+    return {
+        "msg": "Cart updated",
+        "cart": {
+            pid: CartItem(
+                product_id=pid,
+                quantity=qty,
+                details=ProductDetails(**get_product(pid))
+            ) for pid, qty in cart.items()
+        }
+    }
