@@ -8,6 +8,7 @@ from uuid import uuid4
 
 app = FastAPI()
 
+
 """
     VERIFICATION SET-UP
 """
@@ -27,23 +28,24 @@ orders_db ={}
 class User(BaseModel):
     username: str
     full_name: str = None
-    hashed_password:str
+    password:str
 
 
-class UserInDB(User):
-    hashed_password: str
-
-
-class Task(BaseModel):
-    id: int
-    title: str
-    content: str = None
-    done: bool = False
+class EachUser(BaseModel):
+    username: str
+    full_name: str = None
 
 
 class UserProfile(BaseModel):
     username: str
     full_name: str = None
+
+
+class Task(BaseModel):
+    id: str
+    title: str
+    content: str = None
+    done: bool = False
 
 
 class Note(BaseModel):
@@ -76,7 +78,7 @@ def verify_user(plain_pwd, hashed_pwd):
 def authenticate_user(usr_db, usr_name: str, pwd: str):
     user = get_user(usr_db, usr_name)
 
-    if not user or not verify_user(pwd, user.hashed_pwd):
+    if not user or not verify_user(pwd, user["password"]):
         return False
     return user
 
@@ -97,7 +99,7 @@ def login(data: OAuth2PasswordRequestForm = Depends()):
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            details="Invalid username or password",
+            detail="Invalid username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return {"access_token": data.username, "token_type": "bearer"}
@@ -106,8 +108,9 @@ def login(data: OAuth2PasswordRequestForm = Depends()):
 def register(user: User):
     if user.username in user_db:
         raise HTTPException(status_code=400, detail="Username already exist")
-    hashed_pwd = pwd_context.hash(user.hashed_password)
-    user_db[user.username] = UserInDB(**user.dict(), hashed_password=hashed_pwd)
+    hashed_pwd = pwd_context.hash(user.password)
+    user_db[user.username] = {"username": user.username, "full_name": user.full_name, "password": hashed_pwd}
+
     return {"msg": "User registered successfully"}
 
 # End of VERIFICATION SET-UP
@@ -117,13 +120,12 @@ def register(user: User):
     Task 1
 """
 @app.post("/tasks/", response_model=Task)
-def create_task(task: Task, current_user = Depends(get_current_user)):
-    task_id = str(uuid4())
-    task.id = task_id
-    task_db[task_id] = task
+def create_task(task: Task, current_user: User = Depends(get_current_user)):
+    task.id = str(uuid4())
+    task_db[task.id] = task
     return task
 
-@app.get("/tasks/{task_id}", response_model=List[Task])
+@app.get("/tasks/", response_model=List[Task])
 def read_tasks(current_user: User = Depends(get_current_user)):
     return list(task_db.values())
 
@@ -131,11 +133,12 @@ def read_tasks(current_user: User = Depends(get_current_user)):
 def update_task(task_id:str, task: Task, current_user: User = Depends(get_current_user)):
     if task_id not in task_db:
         raise HTTPException(status_code=404, detail="Task not found")
+    task.id = task_id
     task_db[task_id] = task
     return task
 
 @app.delete("/tasks/{task_id}", response_model=Task)
-def delete_task(task_id:str, current_user: User = Depends(get_current_user)):
+def delete_task(task_id:str, current_user: EachUser = Depends(get_current_user)):
     task = task_db.pop(task_id, None)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -267,7 +270,7 @@ def place_order(order: Order, current_user: User = Depends(get_current_user)):
 
 @app.get("/orders/", response_model=List[Order])
 def display_order_history(current_user: User = Depends(get_current_user)):
-    return [order for order in order_db.values() if order.owner == current_user.username]
+    return [order for order in orders_db.values() if order.owner == current_user.username]
 
 @app.get("/orders/{order_id}", response_model=Order)
 def view_order(order_id: str, current_user: User = Depends(get_current_user)):

@@ -1,0 +1,12 @@
+# Local virtual environment
+venv/
+# VS Code
+.vscode/
+# FastAPI-specific
+*.db
+# Temporary files
+*.swp
+# Installer logs
+pip-log.txt
+# Byte-compiled / optimized / DLL files
+__pycache__/
