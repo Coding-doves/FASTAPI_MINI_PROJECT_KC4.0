@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from passlib.context import CryptContext
-from typing import List, Annotated
+from typing import List, Annotated, Optional
 from uuid import uuid4
 
 
@@ -32,8 +32,8 @@ class User(BaseModel):
 
 
 class UserProfile(BaseModel):
-    username: str
-    full_name: str = None
+    username: Optional[str] = None
+    full_name: Optional[str] = None
 
 
 class Task(BaseModel):
@@ -85,9 +85,9 @@ def get_current_user(token: Annotated[str, Depends(oauth)]):
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return user
+    return User(**user)
 
-@app.post("/token")
+@app.post("/login")
 def login(data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(user_db, data.username, data.password)
 
@@ -145,17 +145,27 @@ def delete_task(task_id:str, current_user: Annotated[User, Depends(get_current_u
 """
 @app.get("/profile", response_model=UserProfile)
 def read_profile(current_user: Annotated[User, Depends(get_current_user)]):
-    return UserProfile(**current_user.dict())
+    user_data = user_db.get(current_user.username)
+    if user_data is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return UserProfile(username=user_data["username"], full_name=user_data["full_name"])
 
 @app.put("/profile", response_model=UserProfile)
 def update_profile(profile: UserProfile, current_user: Annotated[User, Depends(get_current_user)]):
     user_data = user_db.get(current_user.username)
     if user_data is None:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    if profile.username and profile.username != current_user.username:
+        if profile.username in user_db:
+            raise HTTPException(status_code=400, detail="Username already exists")
+        user_db[profile.username] = user_db.pop(current_user.username)
+        current_user.username = profile.username
 
-    upd_user = user_data.copy(update=profile.dict())
-    user_db[current_user.username] = upd_user
-    return UserProfile(**upd_user.dict())
+    if profile.full_name:
+        user_db[current_user.username]["full_name"] = profile.full_name
+
+    return UserProfile(username=current_user.username, full_name=profile.full_name)
 
 
 """
