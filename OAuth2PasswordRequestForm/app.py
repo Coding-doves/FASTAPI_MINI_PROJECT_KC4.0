@@ -13,10 +13,13 @@ app = FastAPI()
     VERIFICATION SET-UP
 """
 # OAuth2 scheme
-oauth = OAuth2PasswordBearer(tokenUrl="token")
+oauth = OAuth2PasswordBearer(tokenUrl="login")
 
 # hash password
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+#SECRET_KEY
+#ALGORTHM
 
 # In-memory storage
 user_db ={}
@@ -87,6 +90,13 @@ def get_current_user(token: Annotated[str, Depends(oauth)]):
         )
     return User(**user)
 
+"""
+    Test: URL: http://127.0.0.1:8000/login
+    Headers: Content-Type: application/x-www-form-urlencoded
+    Body (json-data):
+        username: testuser
+        password: testpassword
+"""
 @app.post("/login")
 def login(data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(user_db, data.username, data.password)
@@ -99,6 +109,16 @@ def login(data: OAuth2PasswordRequestForm = Depends()):
         )
     return {"access_token": data.username, "token_type": "bearer"}
 
+"""
+    Test:
+        URL: http://127.0.0.1:8000/register
+        Headers: Content-Type: application/json
+        {
+        "username": "testuser",
+        "full_name": "Test User",
+        "password": "testpassword"
+        }
+"""
 @app.post("/register")
 def register(user: User):
     if user.username in user_db:
@@ -113,6 +133,20 @@ def register(user: User):
 
 """
     Task 1
+    Test:
+        UPDATE and CREATE
+        URL: http://127.0.0.1:8000/tasks/{task_id}
+        Headers: Authorization: Bearer {access_token}
+        Content-Type: application/json
+        {
+            "title": "Updated Task",
+            "content": "This is an updated task",
+            "done": true
+        }
+
+        DELETE and READ Task
+        URL: http://127.0.0.1:8000/tasks/{task_id}
+        Headers: Authorization: Bearer testuser
 """
 @app.post("/tasks/", response_model=Task)
 def create_task(task: Task, current_user: Annotated[User, Depends(get_current_user)]):
@@ -142,6 +176,15 @@ def delete_task(task_id:str, current_user: Annotated[User, Depends(get_current_u
 
 """
     Task 2
+    Test: UPDATE
+    URL: http://127.0.0.1:8000/profile
+    Headers: 
+        Authorization: Bearer testuser
+        Content-Type: application/json
+    {
+        "username": "newuser",
+        "full_name": "Updated Test User"
+    }
 """
 @app.get("/profile", response_model=UserProfile)
 def read_profile(current_user: Annotated[User, Depends(get_current_user)]):
@@ -170,6 +213,21 @@ def update_profile(profile: UserProfile, current_user: Annotated[User, Depends(g
 
 """
     Task 3
+    Test:
+    CREATE
+        {
+            "id": "",
+            "title": "Test Task",
+            "content": "This is a test task",
+            "owner": "user1"
+        }
+        UPDATE
+        {
+            "id": "{uuid4}",
+            "title": "Note Task",
+            "content": "This is a Note task",
+            "owner": "user4"
+        }
 """
 @app.post("/notes/", response_model=Note)
 def create_note(note: Note, current_user: Annotated[User, Depends(get_current_user)]):
@@ -181,19 +239,19 @@ def create_note(note: Note, current_user: Annotated[User, Depends(get_current_us
 
 @app.get("/notes/", response_model=List[Note])
 def display_notes(current_user: Annotated[User, Depends(get_current_user)]):
-    return [n for n in notes_db.values() if n.owner == current_user.username]
+    return list(notes_db.values())
 
 @app.get("/notes/{notes_id}", response_model=Note)
 def read_note(note_id: str, current_user: Annotated[User, Depends(get_current_user)]):
     note = notes_db.get(note_id)
-    if note is None or note.owner != current_user.username:
+    if note is None or note["owner"] != current_user.username:
         raise HTTPException(status_code=404, detail="Note not found or not authorized")
     return note
 
 @app.put("/notes/{note_id}", response_model=Note)
 def update_note(note_id: str, note: Note, current_user: Annotated[User, Depends(get_current_user)]):
     stored_note = notes_db.get(note_id)
-    if stored_note is None or stored_note.owner != current_user.username:
+    if stored_note is None or stored_note["owner"] != current_user.username:
         raise HTTPException(status_code=404, detail="Note not found or not authorized")
     note.id = note_id
     note.owner = current_user.username
@@ -203,7 +261,7 @@ def update_note(note_id: str, note: Note, current_user: Annotated[User, Depends(
 @app.delete("/notes/{note_id}", response_model=Note)
 def delete_note(note_id: str, current_user: Annotated[User, Depends(get_current_user)]):
     note = notes_db.get(note_id)
-    if note is None or note.owner != current_user.username:
+    if note is None or note["owner"] != current_user.username:
         raise HTTPException(status_code=404, detail="Note not found or not authorized")
     return notes_db.pop(note_id)
 
