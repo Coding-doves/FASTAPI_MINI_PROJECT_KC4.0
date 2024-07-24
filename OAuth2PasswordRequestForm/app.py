@@ -239,19 +239,20 @@ def create_note(note: Note, current_user: Annotated[User, Depends(get_current_us
 
 @app.get("/notes/", response_model=List[Note])
 def display_notes(current_user: Annotated[User, Depends(get_current_user)]):
-    return list(notes_db.values())
+    user_notes = [note for note in notes_db.values() if note.owner == current_user.username]
+    return user_notes
 
 @app.get("/notes/{notes_id}", response_model=Note)
 def read_note(note_id: str, current_user: Annotated[User, Depends(get_current_user)]):
     note = notes_db.get(note_id)
-    if note is None or note["owner"] != current_user.username:
+    if note is None or note.owner != current_user.username:
         raise HTTPException(status_code=404, detail="Note not found or not authorized")
     return note
 
 @app.put("/notes/{note_id}", response_model=Note)
 def update_note(note_id: str, note: Note, current_user: Annotated[User, Depends(get_current_user)]):
     stored_note = notes_db.get(note_id)
-    if stored_note is None or stored_note["owner"] != current_user.username:
+    if stored_note is None or stored_note.owner != current_user.username:
         raise HTTPException(status_code=404, detail="Note not found or not authorized")
     note.id = note_id
     note.owner = current_user.username
