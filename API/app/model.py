@@ -54,7 +54,7 @@ class Post(Base):
     title = Column(String)
     content = Column(Text)
     author_id = Column(Integer, ForeignKey("authors.id"))
-    
+
     author = relationship("Author", back_populates="posts")
     comments = relationship("Comment", back_populates="post")
 
@@ -64,4 +64,5 @@ class Comment(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     content = Column(Text)
     post_id = Column(Integer, ForeignKey("posts.id"))
+    
     post = relationship("Post", back_populates="comments")

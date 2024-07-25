@@ -69,3 +69,21 @@ def read_post(post_id: int, db: Session = Depends(db.get_db("blog"))):
     db.delete(db_post)
     db.commit()
     return db_post
+
+@router.post("/posts/{post_id}/comments/", response_model=schemas.Comment)
+def comment_post(comment: schemas.CommentBase, post_id:int, db: Session = Depends(db.get_db("blog"))):
+    db_comment = model.Comment(
+        content=comment.content,
+        post_id=post_id
+    )
+
+    db.add(db_comment)
+    db.commit()
+    db.refresh(db_comment)
+
+    return db_comment
+
+@router.get("/comments/", response_model=List[schemas.Comment])
+def read_comments(skip: int=0, limit:int=10, db: Session = Depends(db.get_db("blog"))):
+    comments = db.query(model.Comment).offset(skip).limit(limit).all()
+    return comments
