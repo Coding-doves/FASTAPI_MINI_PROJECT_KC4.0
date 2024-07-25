@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy.orm import Session
-from app.db import get_db 
+from app import db 
 from app import model, schemas
 from app.dependencies import hash_password, verify_passwd, create_access_token, ACCESS_TOKEN_EXPIRATION
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -22,7 +22,7 @@ def get_role(db: Session, role_name: str):
 
 
 @router.post("/register_user", response_model=schemas.User)
-def reg(user: schemas.CreateUser, db: Session = Depends(get_db)):
+def reg(user: schemas.CreateUser, db: Session = Depends( db.get_db("auth"))):
     db_user = db.query(model.User).filter(model.User.username == user.username).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Username exists")
@@ -43,7 +43,7 @@ def reg(user: schemas.CreateUser, db: Session = Depends(get_db)):
     return  db_user
 
 @router.post("/register_admin", response_model=schemas.User)
-def reg(user: schemas.CreateUser, db: Session = Depends(get_db)):
+def reg(user: schemas.CreateUser, db: Session = Depends(db.get_db("auth"))):
     db_user = db.query(model.User).filter(model.User.username == user.username).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Username exists")
@@ -66,7 +66,7 @@ def reg(user: schemas.CreateUser, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=schemas.Token)
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(db.get_db("auth"))):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
