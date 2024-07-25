@@ -54,6 +54,7 @@ class Post(Base):
     title = Column(String)
     content = Column(Text)
     author_id = Column(Integer, ForeignKey("authors.id"))
+    
     author = relationship("Author", back_populates="posts")
     comments = relationship("Comment", back_populates="post")
 

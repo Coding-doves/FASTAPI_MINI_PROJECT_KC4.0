@@ -24,10 +24,48 @@ def read_authors(skip: int = 0, limit: int = 10, db: Session = Depends(db.get_db
 
 @router.post("/posts/", response_model=schemas.Post)
 def create_post(post: schemas.Post, author_id:int, db: Session = Depends(db.get_db("blog"))):
-    author_posts = post.dict()
-    author_posts["author_id"] = author_id
-    db_post = model.Post(**author_posts)
+    db_post = model.Post(
+        title=post.title,
+        content=post.content,
+        author_id=author_id
+    )
     db.add(db_post)
     db.commit()
     db.refresh(db_post)
+    return db_post
+
+@router.get("/posts/", response_model=List[schemas.Post])
+def read_posts(skip: int=0, limit:int=10, db: Session = Depends(db.get_db("blog"))):
+    posts = db.query(model.Post).offset(skip).limit(limit).all()
+    return posts
+
+@router.get("/posts/{post_id}", response_model=schemas.Post)
+def read_post(post_id: int, db: Session = Depends(db.get_db("blog"))):
+    db_post = db.query(model.Post).filter(model.Post.id == post_id).first()
+    if db_post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return db_post
+
+@router.put("/posts/{post_id}", response_model=schemas.Post)
+def update_post(post: schemas.Post, post_id:int, db: Session = Depends(db.get_db("blog"))):
+    db_post = db.query(model.Post).filter(model.Post.id == post_id).first()
+    
+    if db_post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    for key, value in post.dict().items():
+        setattr(db_post, key, value)
+
+    db.commit()
+    db.refresh(db_post)
+    return db_post
+
+@router.delete("/posts/{post_id}", response_model=schemas.Post)
+def read_post(post_id: int, db: Session = Depends(db.get_db("blog"))):
+    db_post = db.query(model.Post).filter(model.Post.id == post_id).first()
+    if db_post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    db.delete(db_post)
+    db.commit()
     return db_post
