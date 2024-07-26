@@ -51,6 +51,7 @@ class Post(PostBase):
     class Config:
         orm_mode = True
 
+
 class AuthorBase(BaseModel):
     name: str
 
@@ -58,6 +59,20 @@ class AuthorBase(BaseModel):
 class Author(AuthorBase):
     id: int
     posts: List[Post] = []
+
+    class Config:
+        orm_mode = True
+
+
+class TaskBase(BaseModel):
+    title: str
+    description: str = None
+    completed: bool = False
+
+
+class Task(TaskBase):
+    id: int
+    owner_id: int
 
     class Config:
         orm_mode = True

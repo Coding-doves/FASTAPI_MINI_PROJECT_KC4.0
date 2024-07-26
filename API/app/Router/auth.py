@@ -85,3 +85,24 @@ def authenticate_user(db: Session, username: str, password: str):
     if not user or not verify_passwd(password, user.hashed_pwd):
         return False
     return user
+
+# get user by id
+@router.get("/users_i/{user_id}", response_model=schemas.User)
+def read_user_by_id(user_id: int, db: Session = Depends(db.get_db("auth"))):
+    db_user = db.query(model.User).filter(model.User.id == user_id).first()
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user
+
+# get user by user_name
+@router.get("/users_n/{user_name}", response_model=schemas.User)
+def read_user_by_name(user_name: str, db: Session = Depends(db.get_db("auth"))):
+    db_user = db.query(model.User).filter(model.User.username == user_name).first()
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user
+
+# get all user
+@router.get("/users", response_model=schemas.User)
+def read_user(db: Session = Depends(db.get_db("auth")), skip: int = 0, limit: int = 10):
+    return  db.query(model.User).filter(model.User.username).offset(skip).limit(limit).all()

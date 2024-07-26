@@ -61,7 +61,7 @@ def update_post(post: schemas.Post, post_id:int, db: Session = Depends(db.get_db
     return db_post
 
 @router.delete("/posts/{post_id}", response_model=schemas.Post)
-def read_post(post_id: int, db: Session = Depends(db.get_db("blog"))):
+def delete_post(post_id: int, db: Session = Depends(db.get_db("blog"))):
     db_post = db.query(model.Post).filter(model.Post.id == post_id).first()
     if db_post is None:
         raise HTTPException(status_code=404, detail="Post not found")

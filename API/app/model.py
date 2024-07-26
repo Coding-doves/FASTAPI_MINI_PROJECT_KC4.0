@@ -34,7 +34,7 @@ class User(Base):
     active = Column(Boolean, default=True)
 
     roles = relationship("Roles", secondary=user_roles, back_populates="users")
-
+    tasks = relationship("Task", back_populates="owner")
 
 class Author(Base):
     __tablename__ = "authors"
@@ -66,3 +66,16 @@ class Comment(Base):
     post_id = Column(Integer, ForeignKey("posts.id"))
     
     post = relationship("Post", back_populates="comments")
+
+
+"""Task 4"""
+class Task(Base):
+    __tablename__ = "tasks"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String)
+    description = Column(String)
+    completed = Column(Boolean, default=False)
+    owner_id = Column(Integer, ForeignKey("users.id"))
+
+    owner = relationship("User", back_populates="tasks")
