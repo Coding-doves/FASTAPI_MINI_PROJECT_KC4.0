@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, Integer, String, Boolean, ForeignKey, Text
+from sqlalchemy import Table, Column, Integer, String, Boolean, ForeignKey, Text, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from .db import metadata
@@ -79,3 +79,45 @@ class Task(Base):
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="tasks")
+
+
+"""Task 2"""
+class Category(Base):
+    __tablename__ = "categories"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, unique=True)
+
+    products = relationship("Product", back_populates="category")
+
+class Product(Base):
+    __tablename__ = "products"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String)
+    description = Column(String)
+    price = Column(Float)
+    category_id = Column(Integer, ForeignKey("categories.id"))
+
+    category = relationship("Category", back_populates="products")
+    orders = relationship("Order", back_populates="product")
+
+class Customer(Base):
+    __tablename__ = "customers"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String)
+    email = Column(String, unique=True)
+
+    orders = relationship("Order", back_populates="customer")
+
+class Order(Base):
+    __tablename__ = "orders"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    product_id = Column(Integer, ForeignKey("products.id"))
+    customer_id = Column(Integer, ForeignKey("customers.id"))
+    quantity = Column(Integer)
+
+    product = relationship("Product", back_populates="orders")
+    customer = relationship("Customer", back_populates="orders")

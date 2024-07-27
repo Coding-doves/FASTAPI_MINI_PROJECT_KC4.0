@@ -76,3 +76,48 @@ class Task(TaskBase):
 
     class Config:
         orm_mode = True
+
+"""Task 2"""
+class CategoryBase(BaseModel):
+    name: str
+
+class Category(CategoryBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+class ProductBase(BaseModel):
+    name: str
+    description: str
+    price: float
+
+class ProductCreate(ProductBase):
+    category_id: int
+
+class Product(ProductBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+class CustomerBase(BaseModel):
+    name: str
+    email: str
+
+class Customer(CustomerBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+class OrderBase(BaseModel):
+    product_id: int
+    customer_id: int
+    quantity: int
+
+class Order(OrderBase):
+    id: int
+
+    class Config:
+        orm_mode = True
