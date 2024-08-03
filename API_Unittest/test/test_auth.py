@@ -36,7 +36,7 @@ class TestPost(unittest.TestCase):
         model.Base.metadata.drop_all(bind=engine)
     
     def test_register_user(self):
-        response = self.client.post("/auth/register_user", json={
+        response = client.post("/auth/register_user", json={
             "username": "tuser1",
             "firstname": "Test",
             "lastname": "User",
@@ -50,7 +50,7 @@ class TestPost(unittest.TestCase):
         self.assertEqual(response.json()["username"], "tuser1")
 
     def test_register_admin(self):
-        response = self.client.post("/auth/register_admin", json={
+        response = client.post("/auth/register_admin", json={
             "username": "tadmin1",
             "firstname": "Test",
             "lastname": "Admin",
@@ -62,14 +62,14 @@ class TestPost(unittest.TestCase):
 
     def test_login_for_access_token(self):
         # First register a user
-        self.client.post("/auth/register_user", json={
+        client.post("/auth/register_user", json={
             "username": "tlogin1",
             "firstname": "Test",
             "lastname": "Login",
             "passwd": "loginpassword"
         })
 
-        response = self.client.post("/auth/login", data={
+        response = client.post("/auth/login", data={
             "username": "tlogin1",
             "password": "loginpassword"
         })
@@ -79,7 +79,7 @@ class TestPost(unittest.TestCase):
     
     def test_read_user_by_id(self):
         # Register a user
-        response = self.client.post("/auth/register_user", json={
+        response = client.post("/auth/register_user", json={
             "username": "userbyid2",
             "firstname": "Test",
             "lastname": "User",
@@ -92,28 +92,28 @@ class TestPost(unittest.TestCase):
 
     def test_read_user_by_name(self):
         # First register a user
-        self.client.post("/auth/register_user", json={
+        client.post("/auth/register_user", json={
             "username": "userbyname",
             "firstname": "Test",
             "lastname": "User",
             "passwd": "passwordbyname"
         })
 
-        response = self.client.get("/auth/users_n/userbyname")
+        response = client.get("/auth/users_n/userbyname")
         #print(response.json()) 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["username"], "userbyname")
     
     def test_read_all_users(self):
         # First register a user
-        self.client.post("/auth/register_user", json={
+        client.post("/auth/register_user", json={
             "username": "testalluser",
             "firstname": "Test",
             "lastname": "User",
             "passwd": "passwordall"
         })
 
-        response = self.client.get("/auth/users")
+        response = client.get("/auth/users")
         print(response.json()) 
         self.assertEqual(response.status_code, 200)
 

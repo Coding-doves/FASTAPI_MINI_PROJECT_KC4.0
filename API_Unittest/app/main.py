@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.db import db_chooser, metadata
 from app import model
-from app.Router import auth, blog, shop, task
+from app.Router import auth, blog, library, task
 from app.Router.shop import products, categories, orders, customers
 
 
@@ -35,6 +35,7 @@ app.include_router(products.router, prefix="/shop", tags=["shop"])
 app.include_router(orders.router, prefix="/shop", tags=["shop"])
 app.include_router(categories.router, prefix="/shop", tags=["shop"])
 app.include_router(customers.router, prefix="/shop", tags=["shop"])
+app.include_router(library.router, prefix="/lib", tags=["lib"])
 
 
 @app.get("/")

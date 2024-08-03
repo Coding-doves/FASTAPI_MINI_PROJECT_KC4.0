@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 """Task 3"""
 class UserBase(BaseModel):
@@ -13,7 +13,7 @@ class CreateUser(UserBase):
 
 
 class User(UserBase):
-    id:int
+    id:Optional[int]
     active:bool
 
     class Config:
@@ -32,7 +32,7 @@ class CommentBase(BaseModel):
 
 
 class Comment(CommentBase):
-    id: int
+    id: Optional[int]
     post_id: int
 
     class Config:
@@ -44,7 +44,7 @@ class PostBase(BaseModel):
 
 
 class Post(PostBase):
-    id: int
+    id: Optional[int]
     author_id: int
     comments: List[Comment] = []
 
@@ -57,7 +57,7 @@ class AuthorBase(BaseModel):
 
 
 class Author(AuthorBase):
-    id: int
+    id: Optional[int]
     posts: List[Post] = []
 
     class Config:
@@ -71,7 +71,7 @@ class TaskBase(BaseModel):
 
 
 class Task(TaskBase):
-    id: int
+    id: Optional[int]
     owner_id: int
 
     class Config:
@@ -82,7 +82,7 @@ class CategoryBase(BaseModel):
     name: str
 
 class Category(CategoryBase):
-    id: int
+    id: Optional[int]
 
     class Config:
         orm_mode = True
@@ -96,7 +96,7 @@ class ProductCreate(ProductBase):
     category_id: int
 
 class Product(ProductBase):
-    id: int
+    id: Optional[int]
 
     class Config:
         orm_mode = True
@@ -106,7 +106,7 @@ class CustomerBase(BaseModel):
     email: str
 
 class Customer(CustomerBase):
-    id: int
+    id: Optional[int]
 
     class Config:
         orm_mode = True
@@ -117,7 +117,7 @@ class OrderBase(BaseModel):
     quantity: int
 
 class Order(OrderBase):
-    id: int
+    id: Optional[int]
 
     class Config:
         orm_mode = True

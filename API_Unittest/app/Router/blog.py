@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.post("/authors/", response_model=schemas.Author)
-def create_author(author: schemas.Author, db: Session = Depends(db.get_db("blog"))):
+def create_author(author: schemas.AuthorBase, db: Session = Depends(db.get_db("blog"))):
     db_author = model.Author(name=author.name)
     db.add(db_author)
     db.commit()
@@ -23,7 +23,7 @@ def read_authors(skip: int = 0, limit: int = 10, db: Session = Depends(db.get_db
     return authors
 
 @router.post("/posts/", response_model=schemas.Post)
-def create_post(post: schemas.Post, author_id:int, db: Session = Depends(db.get_db("blog"))):
+def create_post(post: schemas.PostBase, author_id:int, db: Session = Depends(db.get_db("blog"))):
     db_post = model.Post(
         title=post.title,
         content=post.content,
@@ -47,7 +47,7 @@ def read_post(post_id: int, db: Session = Depends(db.get_db("blog"))):
     return db_post
 
 @router.put("/posts/{post_id}", response_model=schemas.Post)
-def update_post(post: schemas.Post, post_id:int, db: Session = Depends(db.get_db("blog"))):
+def update_post(post: schemas.PostBase, post_id:int, db: Session = Depends(db.get_db("blog"))):
     db_post = db.query(model.Post).filter(model.Post.id == post_id).first()
     
     if db_post is None:
